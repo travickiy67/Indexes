@@ -27,10 +27,41 @@ select distinct concat(c.last_name, ' ', c.first_name), sum(p.amount) over (part
 from payment p, rental r, customer c, inventory i, film f
 where date(p.payment_date) = '2005-07-30' and p.payment_date = r.rental_date and r.customer_id = c.customer_id and i.inventory_id = r.inventory_id
 ```
+
+<details>
+<summary>Ответ</summary>  
+
+```
+explain analyze
+ select distinct concat(c.last_name, ' ', c.first_name), sum(p.amount) over (partition by c.customer_id, f.title)              --f.title
+from payment p, rental r, customer c, inventory i, film f
+where date(p.payment_date) = '2005-07-30' and p.payment_date = r.rental_date 
+and r.customer_id = c.customer_id and i.inventory_id = r.inventory_id
+```
+![img](https://github.com/travickiy67/Indexes/blob/main/img/2.1.png)  
+
+![img](https://github.com/travickiy67/Indexes/blob/main/img/2.2.png)  
+
 - перечислите узкие места;
 
-**для запроса используются лишние таблицы. Можно удалить из запроса inventory и film. Ну использование оператора JOIN будет более оптимальным** 
+**для запроса используются лишние таблицы. Можно удалить из запроса inventory и film. Ну использование оператора JOIN будет более оптимальным**
+ 
 - оптимизируйте запрос: внесите корректировки по использованию операторов, при необходимости добавьте индексы.
+
+**Оптимизированный код**
+
+```
+select distinct concat(c.last_name, ' ', c.first_name), sum(p.amount) over (partition by c.customer_id )              -- f.title
+from payment p 
+JOIN rental r ON p.payment_date = r.rental_date
+JOIN customer c ON r.customer_id = c.customer_id
+where date(p.payment_date) = '2005-07-30';
+```
+
+![img](https://github.com/travickiy67/Indexes/blob/main/img/2.3.png)  
+
+![img](https://github.com/travickiy67/Indexes/blob/main/img/2.4.png)  
+</details>
 
 ## Дополнительные задания (со звёздочкой*)
 Эти задания дополнительные, то есть не обязательные к выполнению, и никак не повлияют на получение вами зачёта по этому домашнему заданию. Вы можете их выполнить, если хотите глубже шире разобраться в материале.
